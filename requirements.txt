@@ -1,0 +1,11 @@
+openai-whisper
+demucs
+better-profanity
+librosa
+soundfile
+numpy
+scikit-learn
+joblib
+streamlit
+pytest
+# If Demucs fails when saving audio, pin: torch<2.9 torchaudio<2.9

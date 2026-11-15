@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, sans-serif; color: #444; }
+  @media (prefers-color-scheme: dark) { body { color: #ddd; } }
+  #wrap { padding: 4px 2px; }
+  canvas { width: 100%; height: 90px; display: block; touch-action: none; cursor: grab;
+           border-radius: 8px; background: rgba(128,128,128,.12); }
+  canvas:active { cursor: grabbing; }
+  #row { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+  button { border: 0; border-radius: 20px; padding: 8px 18px; font-size: 14px; font-weight: 600;
+           background: #25d366; color: #fff; cursor: pointer; }
+  button:disabled { background: #999; cursor: default; }
+  #label { font-weight: 600; }
+  #hint { margin-left: auto; font-size: 12px; opacity: .7; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="cv"></canvas>
+  <div id="row">
+    <button id="play" disabled>Play</button>
+    <span id="label">Loading song preview...</span>
+    <span id="hint">Drag the green box left or right</span>
+  </div>
+</div>
+<script>
+const send = (type, data) =>
+  window.parent.postMessage(Object.assign({ isStreamlitMessage: true, type: type }, data || {}), "*");
+
+let inited = false;
+window.addEventListener("message", (ev) => {
+  if (ev.data && ev.data.type === "streamlit:render" && !inited) {
+    inited = true;
+    init(ev.data.args);
+  }
+});
+send("streamlit:componentReady", { apiVersion: 1 });
+send("streamlit:setFrameHeight", { height: 150 });
+
+const fmt = (s) => { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+
+async function init(args) {
+  const cv = document.getElementById("cv");
+  const g = cv.getContext("2d");
+  const playBtn = document.getElementById("play");
+  const label = document.getElementById("label");
+  const audio = new Audio();
+  let duration = 0, win = args.window, start = args.start || 0, maxStart = 0;
+  let samples = null, peaks = [], cssW = 0, dragging = false, lastSeek = 0;
+
+  function computePeaks() {
+    const dpr = window.devicePixelRatio || 1;
+    cssW = cv.clientWidth;
+    cv.width = Math.floor(cssW * dpr);
+    cv.height = Math.floor(90 * dpr);
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const bars = Math.max(1, Math.floor(cssW / 3));
+    peaks = new Array(bars).fill(0);
+    if (!samples) return;
+    const per = Math.floor(samples.length / bars);
+    for (let i = 0; i < bars; i++) {
+      let m = 0;
+      for (let j = i * per; j < (i + 1) * per; j += 8) { const v = Math.abs(samples[j]); if (v > m) m = v; }
+      peaks[i] = m;
+    }
+    const top = Math.max(...peaks, 0.01);
+    peaks = peaks.map((p) => p / top);
+  }
+
+  function draw() {
+    g.clearRect(0, 0, cssW, 90);
+    const bars = peaks.length, bw = cssW / bars;
+    g.fillStyle = "#9aa0a6";
+    for (let i = 0; i < bars; i++) {
+      const h = Math.max(2, peaks[i] * 70);
+      g.fillRect(i * bw, 45 - h / 2, Math.max(1, bw - 1), h);
+    }
+    if (duration > 0) {
+      const xs = (start / duration) * cssW, xe = ((start + win) / duration) * cssW;
+      g.fillStyle = "rgba(100,100,100,0.45)";
+      g.fillRect(0, 0, xs, 90);
+      g.fillRect(xe, 0, cssW - xe, 90);
+      g.strokeStyle = "#25d366"; g.lineWidth = 3;
+      g.strokeRect(xs + 1.5, 1.5, Math.max(4, xe - xs - 3), 87);
+      const px = (audio.currentTime / duration) * cssW;
+      g.fillStyle = "#ffffff"; g.fillRect(px - 1, 0, 2, 90);
+    }
+    requestAnimationFrame(draw);
+  }
+
+  function updateLabel() { label.textContent = fmt(start) + " - " + fmt(start + win); }
+
+  function startFromX(clientX) {
+    const r = cv.getBoundingClientRect();
+    const t = ((clientX - r.left) / r.width) * duration - win / 2;
+    return Math.min(maxStart, Math.max(0, t));
+  }
+
+  function seekTo(t, force) {
+    const now = performance.now();
+    if (force || now - lastSeek > 80) { audio.currentTime = t; lastSeek = now; }
+  }
+
+  function commit() {
+    send("streamlit:setComponentValue", { value: Math.round(start * 10) / 10, dataType: "json" });
+  }
+
+  try {
+    const resp = await fetch(args.url);
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    const buf = await resp.arrayBuffer();
+    audio.src = URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    const decoded = await ac.decodeAudioData(buf.slice(0));
+    duration = decoded.duration;
+    samples = decoded.getChannelData(0);
+    win = Math.min(win, duration);
+    maxStart = Math.max(0, duration - win);
+    start = Math.min(start, maxStart);
+    computePeaks();
+    updateLabel();
+    playBtn.disabled = false;
+    window.addEventListener("resize", computePeaks);
+    draw();
+  } catch (e) {
+    label.textContent = "Could not load audio preview: " + e;
+    return;
+  }
+
+  audio.addEventListener("play", () => { playBtn.textContent = "Pause"; });
+  audio.addEventListener("pause", () => { playBtn.textContent = "Play"; });
+  audio.addEventListener("timeupdate", () => {
+    if (!audio.paused && audio.currentTime >= start + win - 0.05) audio.currentTime = start;  // loop the selected section
+  });
+  playBtn.addEventListener("click", () => {
+    if (audio.paused) {
+      if (audio.currentTime < start || audio.currentTime >= start + win) audio.currentTime = start;
+      audio.play();
+    } else {
+      audio.pause();
+    }
+  });
+
+  function move(e) {
+    start = startFromX(e.clientX);
+    updateLabel();
+    seekTo(start, false);          // if playing, audio jumps to the new spot and keeps playing
+  }
+  cv.addEventListener("pointerdown", (e) => { dragging = true; cv.setPointerCapture(e.pointerId); move(e); });
+  cv.addEventListener("pointermove", (e) => { if (dragging) move(e); });
+  cv.addEventListener("pointerup", () => { dragging = false; seekTo(start, true); commit(); });
+}
+</script>
+</body>
+</html>
