@@ -2,6 +2,12 @@
 
 **Course:** SWE414 – Artificial Intelligence and Intelligent Systems
 
+TEAM MEMBERS:	
+JAVANGWE MARVYN B231105A
+MUNYORO KHUMBULANI B232535B        
+MASHIRI BLESSING B230150A                     
+MAVENEKE TINASHE B230377B                	
+
 ## Overview
 
 An AI-powered application that detects profanity in music and automatically censors identified words. It combines audio source separation, speech recognition and profanity detection to produce a censored version of the original track.
@@ -29,6 +35,8 @@ Audio Input → Demucs → Whisper Transcription → Profanity Detection → Aud
 - Download the censored track as an MP3.
 
 ## Technologies
+
+**Note on the Whisper model:** the app uses `base`, which is fast on CPU. Accuracy on sung or fast vocals is limited, so word timestamps can be imprecise. A larger model (`small`) improves this at the cost of speed. Full-track processing is slow on CPU and fast on a GPU.
 
 | Technology | Purpose |
 |---|---|

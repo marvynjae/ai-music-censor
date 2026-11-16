@@ -5,17 +5,20 @@ from trimmer import prepare_preview, section_trimmer
 from pipeline import run, render
 
 PREVIEW_SECONDS = 30
+
+# Whisper model: "base" (fast on CPU).
+# Accuracy on sung or fast vocals is limited, so word timestamps can be imprecise.
+# A larger model ("small, medium, turbo") improves this at the cost of speed.
+# Full-track processing is slow on CPU and fast on a GPU.
 WHISPER_MODEL = "base"
 
 st.set_page_config(page_title="Song Profanity Censor", layout="centered", initial_sidebar_state="collapsed")
-
 
 def load_css(file_name="styles.css"):
     css_path = os.path.join(os.path.dirname(__file__), file_name)
     if os.path.exists(css_path):
         with open(css_path, "r", encoding="utf-8") as css_file:
             st.markdown(f"<style>{' '.join(css_file.read().split())}</style>", unsafe_allow_html=True)
-
 
 load_css()
 
@@ -30,13 +33,13 @@ def fmt(sec):
 def words_text(n):
     return "No explicit words found" if n == 0 else f"{n} explicit word{'s' if n != 1 else ''} censored"
 
-def get_audio(res, fmt_type="wav"):
+def get_audio(res, fmt_type, method, pad):
     sig = (method, round(pad, 3), fmt_type)
     cache = res.setdefault("cache", {})
     if sig not in cache:
         cache.clear()
         y = render(res["source"], res["flagged"], method, pad)
-        cache[sig] = C.to_mp3_bytes(y, sr) if fmt_type == "mp3" else C.to_wav_bytes(y, sr)
+        cache[sig] = C.to_mp3_bytes(y, C.SR) if fmt_type == "mp3" else C.to_wav_bytes(y, C.SR)
     return cache[sig]
 
 f = st.file_uploader("Upload a song", type=["mp3", "wav", "flac", "m4a", "ogg"])
@@ -70,7 +73,6 @@ sr = C.SR
 total = audio.shape[-1] / sr
 
 st.markdown(f"**{f.name}** · `{fmt(total)}`")
-
 
 with st.expander("Censor settings", expanded=False):
 
@@ -106,7 +108,6 @@ with st.expander("Censor settings", expanded=False):
                 "processing, but censoring may also affect the instrumental."
             ),
         )
-
 
 # =========================================
 # 1. PREVIEW TRACK
@@ -146,6 +147,7 @@ if st.button("Scan & Censor Selected Portion", type="secondary", use_container_w
 
     st.session_state.preview = {
         "start": start,
+        "use_sep": use_sep,
         "segment": segment,
         "flagged": rep["flagged"],
         "transcript": rep["transcript"],
@@ -155,19 +157,16 @@ if st.button("Scan & Censor Selected Portion", type="secondary", use_container_w
 
 
 pv = st.session_state.get("preview")
+pv_valid = pv is not None and pv["start"] == start and pv.get("use_sep") == use_sep
 
-if pv and pv["start"] == start:
+if pv_valid:
 
-    mode = st.radio(
-        "Playback comparison",
-        ["Censored Preview", "Original Uncensored"],
-        horizontal=True,
-        label_visibility="collapsed",
-    )
+    tab_c, tab_o = st.tabs(["Censored Preview", "Original Uncensored"])
 
-    if mode == "Censored Preview":
-        st.audio(get_audio(pv, "wav"), format="audio/wav")
-    else:
+    with tab_c:
+        st.audio(get_audio(pv, "wav", method, pad), format="audio/wav")
+
+    with tab_o:
         st.audio(C.to_wav_bytes(pv["segment"], sr), format="audio/wav")
 
     with st.expander(f"Censored words ({len(pv['flagged'])})", expanded=False):
@@ -184,7 +183,7 @@ if pv and pv["start"] == start:
             st.caption("No explicit words detected in this section.")
 
 elif pv:
-    st.info("You moved the selection — press **Scan & Censor Selected 30s** to update.")
+    st.info("You moved the selection or changed a setting. Press **Scan & Censor Selected Portion** to update.")
 
 
 # =========================================
@@ -195,12 +194,7 @@ elif pv:
 st.divider()
 st.subheader("2. Export Clean Full Track")
 
-preview_completed = (
-    pv is not None
-    and pv["start"] == start
-)
-
-if preview_completed:
+if pv_valid:
     st.caption(
         "Your preview is complete. Export the entire song using the selected censor settings."
     )
@@ -213,7 +207,7 @@ if st.button(
     "Censor Full Track",
     type="primary",
     use_container_width=True,
-    disabled=not preview_completed
+    disabled=not pv_valid
 ):
     st.session_state.full = None
 
@@ -225,12 +219,11 @@ if st.button(
     try:
         rep = run(
             src,
-            None,
-            method,
-            WHISPER_MODEL,
-            pad,
-            use_sep,
-            progress_callback=update_progress
+            method=method,
+            model_name=WHISPER_MODEL,
+            pad=pad,
+            use_separation=use_sep,
+            progress_callback=update_progress,
         )
 
         st.session_state.full = {
@@ -242,9 +235,7 @@ if st.button(
 
         progress.progress(93, text="Preparing clean MP3...")
 
-        mp3_data = get_audio(st.session_state.full, "mp3")
-
-        st.session_state.full["mp3_data"] = mp3_data
+        get_audio(st.session_state.full, "mp3", method, pad)
 
         progress.progress(100, text="Censoring complete!")
 
@@ -264,8 +255,8 @@ if full:
     )
 
     st.download_button(
-        "Download Clean Track (MP3)",
-        full["mp3_data"],
+        "Download Clean Track",
+        get_audio(full, "mp3", method, pad),
         os.path.splitext(f.name)[0] + "-censored.mp3",
         "audio/mpeg",
         type="secondary",

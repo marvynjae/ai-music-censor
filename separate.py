@@ -29,11 +29,8 @@ except Exception:
 def separate_vocals(audio_path: str, workdir: str, model_name: str = "htdemucs"):
     model = get_demucs_model(model_name)
 
-    data, sr = sf.read(audio_path, always_2d=True, dtype="float32")
-    wav_np = data.T
-
-    if sr != model.samplerate:
-        wav_np = librosa.resample(wav_np, orig_sr=sr, target_sr=model.samplerate)
+    wav_np, _ = librosa.load(audio_path, sr=model.samplerate, mono=False)
+    wav_np = np.atleast_2d(wav_np).astype(np.float32)
 
     if wav_np.shape[0] == 1:
         wav_np = np.repeat(wav_np, 2, axis=0)

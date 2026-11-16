@@ -147,7 +147,7 @@ async function init(args) {
   function move(e) {
     start = startFromX(e.clientX);
     updateLabel();
-    seekTo(start, false);          // if playing, audio jumps to the new spot and keeps playing
+    seekTo(start, false);    
   }
   cv.addEventListener("pointerdown", (e) => { dragging = true; cv.setPointerCapture(e.pointerId); move(e); });
   cv.addEventListener("pointermove", (e) => { if (dragging) move(e); });

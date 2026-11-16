@@ -28,11 +28,7 @@ except Exception:
 def transcribe_words(audio_path: str, model_name: str = "base", language: str = "en"):
     model = get_whisper_model(model_name)
 
-    audio, sr = sf.read(audio_path, dtype="float32")
-    if audio.ndim > 1:
-        audio = audio.mean(axis=1)
-    if sr != 16000:
-        audio = librosa.resample(audio, orig_sr=sr, target_sr=16000)
+    audio, _ = librosa.load(audio_path, sr=16000, mono=True)
 
     segments, _ = model.transcribe(
         audio,

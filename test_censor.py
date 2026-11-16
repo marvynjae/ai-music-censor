@@ -14,14 +14,14 @@ def rms(y): return float(np.sqrt(np.mean(y ** 2)))
 def test_mute_silences_segment_only():
     y = tone()
     out = C.mute_segments(y, SR, [(1.0, 1.5)], pad=0.0)
-    assert rms(out[:, int(1.05*SR):int(1.45*SR)]) < 1e-3     # muted
-    assert rms(out[:, :int(0.9*SR)]) > 0.3                    # untouched before
-    assert rms(out[:, int(1.6*SR):]) > 0.3                    # untouched after
+    assert rms(out[:, int(1.05*SR):int(1.45*SR)]) < 1e-3   
+    assert rms(out[:, :int(0.9*SR)]) > 0.3                  
+    assert rms(out[:, int(1.6*SR):]) > 0.3                
 
 def test_recombine_keeps_instrumental():
     vocals, inst = tone(freq=440), tone(freq=220)
     out = C.censor_stems(vocals, inst, SR, [(1.0, 1.5)], pad=0.0)
-    assert rms(out[:, int(1.05*SR):int(1.45*SR)]) > 0.3       # instrumental still plays
+    assert rms(out[:, int(1.05*SR):int(1.45*SR)]) > 0.3
     assert out.shape == vocals.shape
 
 def test_beep_adds_signal_over_muted_silence():

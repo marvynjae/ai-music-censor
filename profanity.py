@@ -1,4 +1,3 @@
-"""Profanity detection: better-profanity baseline + local lexicon + optional ML model."""
 import re
 from pathlib import Path
 from better_profanity import profanity as bp
@@ -22,7 +21,7 @@ def is_profane(word: str, clf=None, threshold=0.5) -> bool:
     w = clean(word)
     if not w:
         return False
-    if "*" in w:                      # Whisper sometimes self-censors: "f***ing"
+    if "*" in w:
         return True
     if bp.contains_profanity(w) or w in EXTRA:
         return True

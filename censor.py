@@ -1,5 +1,3 @@
-
-"""Audio censoring: mute vocal stem, recombine with instrumental, optional beep."""
 import io
 import numpy as np
 import librosa
@@ -10,7 +8,7 @@ SR = 44100
 
 def load(path, sr=SR):
     y, _ = librosa.load(path, sr=sr, mono=False)
-    return np.atleast_2d(y).astype(np.float32)           # (channels, n)
+    return np.atleast_2d(y).astype(np.float32)
 
 def merge_segments(segs, gap=0.05):
     merged = []
@@ -67,7 +65,7 @@ def save(path, y, sr=SR):
 
 
 def to_wav_bytes(y, sr=SR):
-    """Encode audio (channels, n) as in-memory WAV bytes, for st.audio / downloads."""
+    
     buf = io.BytesIO()
     sf.write(buf, y.T, sr, format="WAV", subtype="PCM_16")
     return buf.getvalue()

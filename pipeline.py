@@ -1,5 +1,3 @@
-
-"""Audio -> (Demucs) -> Whisper -> profanity detection -> censor."""
 import tempfile
 import time
 
@@ -8,9 +6,8 @@ from transcribe import transcribe_words
 from profanity import detect
 import censor as C
 
-
 def render(source, flagged, method="mute", pad=0.1):
-    """Apply censoring to the already-loaded audio. No AI processing is repeated."""
+
     segments = [(w["start"], w["end"]) for w in flagged]
 
     if source["separated"]:
@@ -33,7 +30,6 @@ def render(source, flagged, method="mute", pad=0.1):
 
 def run(in_path, method="mute", model_name="base", pad=0.1,
         use_separation=True, language=None, clf=None, progress_callback=None):
-    """Transcribe and detect profanity, then return the audio sources and results."""
 
     timings = {}
 
