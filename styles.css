@@ -1,0 +1,395 @@
+
+:root {
+    --bg-main: #0b0d12;
+    --bg-card: #12151d;
+    --bg-card-hover: #181d28;
+    --bg-elevated: #1b202b;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-active: rgba(29, 185, 84, 0.45);
+    --text-primary: #f4f5f7;
+    --text-secondary: #9299a8;
+    --accent: #1ed760;
+    --accent-hover: #1fef6a;
+    --radius: 12px;
+}
+
+/* =========================================
+   APPLICATION BACKGROUND
+========================================= */
+
+.stApp {
+    background:
+        radial-gradient(
+            ellipse at 15% 0%,
+            rgba(29, 185, 84, 0.07),
+            transparent 35%
+        ),
+        var(--bg-main);
+    color: var(--text-primary);
+}
+
+[data-testid="stAppViewContainer"] {
+    background: transparent;
+}
+
+[data-testid="stHeader"] {
+    background: transparent;
+}
+
+[data-testid="stToolbar"] {
+    visibility: hidden;
+}
+
+footer {
+    visibility: hidden;
+}
+
+#MainMenu {
+    visibility: hidden;
+}
+
+/* =========================================
+   MAIN CONTENT SPACING
+========================================= */
+
+.block-container {
+
+    padding-top: 1.5rem;
+    padding-bottom: 1rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+[data-testid="stVerticalBlock"] {
+    gap: 0.65rem;
+}
+
+[data-testid="stHorizontalBlock"] {
+    gap: 1rem;
+}
+
+/* =========================================
+   TYPOGRAPHY
+========================================= */
+
+html,
+body,
+[class*="css"] {
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+h1 {
+    color: var(--text-primary) !important;
+    font-size: 2rem !important;
+    font-weight: 750 !important;
+    letter-spacing: -1px !important;
+    margin-bottom: 0.15rem !important;
+}
+
+h2 {
+    color: var(--text-primary) !important;
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.3px !important;
+}
+
+h3 {
+    color: var(--text-primary) !important;
+    font-size: 1rem !important;
+    font-weight: 650 !important;
+}
+
+p,
+label,
+.stMarkdown {
+    color: var(--text-primary);
+}
+
+[data-testid="stCaptionContainer"] {
+    color: var(--text-secondary) !important;
+    font-size: 0.8rem;
+}
+
+/* =========================================
+   STUDIO CARDS
+========================================= */
+
+[data-testid="stVerticalBlockBorderWrapper"] {
+    background: linear-gradient(
+        145deg,
+        rgba(25, 29, 39, 0.96),
+        rgba(17, 20, 28, 0.98)
+    );
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
+}
+
+/* =========================================
+   BUTTONS
+========================================= */
+
+.stButton > button,
+.stDownloadButton > button {
+    min-height: 43px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    font-size: 0.88rem;
+    font-weight: 650;
+    transition: all 0.2s ease;
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+}
+
+.stButton > button:hover,
+.stDownloadButton > button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(29, 185, 84, 0.08);
+}
+
+.stButton > button[kind="primary"],
+.stDownloadButton > button[kind="primary"] {
+    background: var(--accent) !important;
+    color: #07140b !important;
+    border: none !important;
+    font-weight: 750;
+}
+
+.stButton > button[kind="primary"]:hover,
+.stDownloadButton > button[kind="primary"]:hover {
+    background: var(--accent-hover) !important;
+    box-shadow: 0 4px 18px rgba(29, 185, 84, 0.2);
+    transform: translateY(-1px);
+}
+
+/* =========================================
+   FILE UPLOADER
+========================================= */
+
+[data-testid="stFileUploader"] {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+    padding: 0.65rem;
+    transition: border-color 0.2s ease;
+}
+
+[data-testid="stFileUploader"]:hover {
+    border-color: var(--accent);
+}
+
+[data-testid="stFileUploaderDropzone"] {
+    background: transparent !important;
+    border: none !important;
+}
+
+[data-testid="stFileUploaderDropzoneInstructions"] {
+    color: var(--text-secondary);
+}
+
+
+/* =========================================
+   INPUTS AND SELECTORS
+========================================= */
+
+
+div[data-testid="stSelectbox"] div[data-baseweb="select"] {
+    cursor: pointer !important;
+}
+
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+    background: #1b202b !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 8px !important;
+    min-height: 42px;
+    cursor: pointer !important;
+}
+
+div[data-testid="stSelectbox"] input {
+    cursor: pointer !important;
+    caret-color: transparent !important;
+}
+
+div[data-testid="stSelectbox"] [role="combobox"] {
+    cursor: pointer !important;
+}
+
+div[data-testid="stSelectbox"] svg {
+    color: #1ed760 !important;
+}
+
+.stSlider [role="slider"] {
+    background: #1ed760 !important;
+    border-color: #1ed760 !important;
+}
+
+
+/* =========================================
+   RADIO CONTROLS
+========================================= */
+
+[data-testid="stRadio"] > div {
+    gap: 0.5rem;
+}
+
+[data-testid="stRadio"] label {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+[data-testid="stRadio"] label:has(input:checked) {
+    color: var(--accent);
+}
+
+/* =========================================
+   AUDIO PLAYER
+========================================= */
+
+[data-testid="stAudio"] {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 5px;
+}
+
+audio {
+    width: 100%;
+}
+
+/* =========================================
+   TABLES
+========================================= */
+
+[data-testid="stTable"],
+[data-testid="stDataFrame"] {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    overflow: hidden;
+}
+
+[data-testid="stTable"] th {
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+}
+
+[data-testid="stTable"] td {
+    font-size: 0.82rem;
+    color: var(--text-primary);
+}
+
+/* =========================================
+   EXPANDERS AND TABS
+========================================= */
+
+[data-testid="stExpander"] {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+}
+
+[data-testid="stExpander"] summary {
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+button[data-baseweb="tab"] {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+button[data-baseweb="tab"][aria-selected="true"] {
+    color: var(--accent);
+}
+
+[data-baseweb="tab-highlight"] {
+    background-color: var(--accent);
+}
+
+/* =========================================
+   ALERTS AND STATUS
+========================================= */
+
+[data-testid="stAlert"] {
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    font-size: 0.85rem;
+}
+
+[data-testid="stAlert"][kind="success"] {
+    background: rgba(29, 185, 84, 0.08);
+    border-color: rgba(29, 185, 84, 0.25);
+}
+
+[data-testid="stAlert"][kind="info"] {
+    background: rgba(74, 144, 226, 0.08);
+}
+
+/* =========================================
+   DIVIDERS
+========================================= */
+
+hr {
+    border-color: var(--border) !important;
+    margin-top: 0.6rem !important;
+    margin-bottom: 0.6rem !important;
+}
+
+/* =========================================
+   SCROLLBARS
+========================================= */
+
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #343b49;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #505969;
+}
+
+/* =========================================
+   RESPONSIVE ADJUSTMENTS
+========================================= */
+
+@media (max-width: 1100px) {
+    .block-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .block-container {
+        padding-top: 1rem;
+        padding-left: 0.8rem;
+        padding-right: 0.8rem;
+    }
+
+    h1 {
+        font-size: 1.6rem !important;
+    }
+
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        padding: 0.7rem;
+    }
+}

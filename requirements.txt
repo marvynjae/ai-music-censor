@@ -1,4 +1,4 @@
-openai-whisper
+faster-whisper
 demucs
 better-profanity
 librosa
@@ -7,5 +7,5 @@ numpy
 scikit-learn
 joblib
 streamlit
+lameenc
 pytest
-# If Demucs fails when saving audio, pin: torch<2.9 torchaudio<2.9

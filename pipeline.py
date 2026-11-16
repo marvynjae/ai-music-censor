@@ -31,29 +31,38 @@ def render(source, flagged, method="mute", pad=0.1):
         pad
     )
 
-
-def run(in_path, out_path=None, method="mute", model_name="base", pad=0.1,
-        use_separation=True, language=None, clf=None):
+def run(in_path, method="mute", model_name="base", pad=0.1,
+        use_separation=True, language=None, clf=None, progress_callback=None):
     """Transcribe and detect profanity, then return the audio sources and results."""
+
     timings = {}
+
+    def report(percent, message):
+        if progress_callback:
+            progress_callback(percent, message)
 
     with tempfile.TemporaryDirectory() as workdir:
         t0 = time.time()
 
         if use_separation:
+            report(5, "Separating vocals from instrumental...")
             vocals_path, instrumental_path = separate_vocals(in_path, workdir)
             timings["separation_s"] = round(time.time() - t0, 1)
             transcribe_src = vocals_path
         else:
+            report(30, "Skipping vocal separation...")
             transcribe_src = in_path
 
+        report(35, "Transcribing vocals...")
         t0 = time.time()
         words = transcribe_words(transcribe_src, model_name, language)
         timings["transcription_s"] = round(time.time() - t0, 1)
 
+        report(75, "Detecting explicit words...")
         flagged = detect(words, clf)
 
-        # Load audio into memory before the temporary Demucs directory is removed.
+        report(85, "Preparing audio sources...")
+
         if use_separation:
             source = {
                 "separated": True,
@@ -66,14 +75,15 @@ def run(in_path, out_path=None, method="mute", model_name="base", pad=0.1,
                 "mix": C.load(in_path)
             }
 
+        report(90, "Audio analysis complete.")
+
     return {
         "transcript": words,
         "flagged": flagged,
         "timings": timings,
-        "output": None,
+
         "source": source
     }
-
 
 if __name__ == "__main__":
     import sys
